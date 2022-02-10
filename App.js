@@ -2,16 +2,15 @@ import AddInput from "./Components/AddInput";
 import Main from "./Components/Main";
 import Empty from "./Components/Empty";
 import Header from "./Components/Header";
-import React, { useState } from "react";
+import React, { Component, useState } from "react";
 import AppLoading from "expo-app-loading";
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, Button, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { SafeAreaView, FlatList } from 'react-native';
+import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
+import { SafeAreaView, FlatList, AppRegistry, Button } from 'react-native';
 import Swipeout from 'react-native-swipeout';
 import * as Font from "expo-font";
 import styled from 'styled-components';
 import Toast from 'react-native-toast-message';
-
 
 const getFonts = () =>
 Font.loadAsync({
@@ -20,12 +19,16 @@ Font.loadAsync({
 });
 
 
-
-
 export default function App() {
-  // const renderItem = ({ item }) => <Item title={item.title} />;
-  
+
+
   const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  const panes = [
+    { menuItem: 'Tab 1', render: () => <Tab.Pane>Tab 1 Content</Tab.Pane> },
+    { menuItem: 'Tab 2', render: () => <Tab.Pane>Tab 2 Content</Tab.Pane> },
+    { menuItem: 'Tab 3', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
+  ]
 
   const [data, setData] = useState([]);
 
@@ -40,6 +43,7 @@ export default function App() {
         {
           value: value,
           state: 0,
+          show:0,
           key: Math.random().toString(),
         },
         ...prevTodo,
@@ -58,12 +62,14 @@ export default function App() {
     });
   };
 
+
   const setIsDone = (item, key) => {
     setData((prevTodo) => {
       return [
         {
           value: item.value,
           state: 1,
+          show:0,
           key: item.key,
         },
         ...prevTodo.filter((todo) => todo.key != key),
@@ -71,14 +77,49 @@ export default function App() {
     });
   }
 
-  function DetailsScreen() {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Details Screen</Text>
-      </View>
-    );
+  const showDetail = (item, key) => {
+    if(item.show == 1){
+      setData((prevTodo) => {
+        return [
+          {
+            value: item.value,
+            state: item.state,
+            show:0,
+            key: item.key,
+          },
+          ...prevTodo.filter((todo) => todo.key != key),
+        ];
+      });
+    }
+    if(item.show == 0){
+      setData((prevTodo) => {
+        return [
+          {
+            value: item.value,
+            state: item.state,
+            show:1,
+            key: item.key,
+          },
+          ...prevTodo.filter((todo) => todo.key != key),
+        ];
+      });
+    }
+
   }
 
+  const dissmissDetail = (item, key) => {
+    setData((prevTodo) => {
+      return [
+        {
+          value: item.value,
+          state: item.state,
+          show: 0,
+          key: item.key,
+        },
+        ...prevTodo.filter((todo) => todo.key != key),
+      ];
+    });
+  }
 
   const setUnDone = (item, key) => {
     setData((prevTodo) => {
@@ -86,6 +127,7 @@ export default function App() {
         {
           value: item.value,
           state: 0,
+          show:0,
           key: item.key,
         },
         ...prevTodo.filter((todo) => todo.key != key),
@@ -93,8 +135,11 @@ export default function App() {
     });
   }
 
+
   if (fontsLoaded) {
+    
   return (
+  
     <ComponentContainer>
     <View>
       <StatusBar barStyle="light-content" backgroundColor="midnightblue" />
@@ -105,10 +150,9 @@ export default function App() {
         ListHeaderComponent={() => <Header />}
         ListEmptyComponent={() => <Empty />}
         keyExtractor={(item) => item.key}
-        renderItem={({ item }) => <Main item={item} deleteItem={deleteItem} setIsDone={setIsDone} setUnDone={setUnDone}
+        renderItem={({ item }) => <Main item={item} deleteItem={deleteItem} setIsDone={setIsDone} setUnDone={setUnDone} showDetail={showDetail}
          />}
       />
-      
       <View>
       <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}>
